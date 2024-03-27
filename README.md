@@ -65,7 +65,7 @@ Windowsを前提としています。
 #### GitやPython使える人
 
 ```bash
-git clone https://github.com/litagin02/Style-Bert-VITS2.git
+git clone https://github.com/ivy-consulting/Style-Bert-VITS2
 cd Style-Bert-VITS2
 python -m venv venv
 venv\Scripts\activate
