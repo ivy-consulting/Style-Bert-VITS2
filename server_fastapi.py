@@ -10,6 +10,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import unquote
+from pydantic import BaseModel
 
 import GPUtil
 import psutil
@@ -19,6 +20,12 @@ from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from scipy.io import wavfile
+from AudioPhoneticsLab.scripts.speech_symbol_timestamps import audio_query_json
+from createVoice import createVoice
+
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+import json
+import soundfile as sf
 
 from config import config
 from style_bert_vits2.constants import (
@@ -88,6 +95,11 @@ def load_models(model_holder: TTSModelHolder):
         # 起動時に全てのモデルを読み込むのは時間がかかりメモリを食うのでやめる
         # model.load()
         loaded_models.append(model)
+
+def createBinary(audio_path):
+  data, samplerate = sf.read(audio_path, dtype='int16')
+  binary_data = data.tobytes()
+  return binary_data, samplerate
 
 
 if __name__ == "__main__":
@@ -192,6 +204,7 @@ if __name__ == "__main__":
             raise_validation_error(f"model_id={model_id} not found", "model_id")
 
         model = loaded_models[model_id]
+
         if speaker_name is None:
             if speaker_id not in model.id2spk.keys():
                 raise_validation_error(
@@ -225,10 +238,48 @@ if __name__ == "__main__":
             style=style,
             style_weight=style_weight,
         )
-        logger.success("Audio data generated and sent successfully")
-        with BytesIO() as wavContent:
-            wavfile.write(wavContent, sr, audio)
-            return Response(content=wavContent.getvalue(), media_type="audio/wav")
+
+        wav_bytes_io = BytesIO()
+        wavfile.write(wav_bytes_io, sr, audio.astype('int16'))  # Ensure audio data type is int16
+        wav_bytes_io.seek(0)
+
+        try:
+            audio_data = wav_bytes_io
+            # Now you can do something with the audio data, such as saving it to a 
+            logger.info("audio data vlue:", audio_data.getvalue())
+            with open("output.wav", "wb") as f:
+                f.write(audio_data.getvalue())
+            logger.success("Audio data generated and sent successfully")
+
+            audio_path = "./output.wav"
+            binary, samplerate = createBinary('./output.wav')
+            samplerate_str = str(samplerate)
+
+            # create vowel and vowel_length
+            data = audio_query_json(audio_path=audio_path, mapping_file="AudioPhoneticsLab/files/mapping.json")
+            data_str = json.dumps(data)
+
+            multipart_data = MultipartEncoder(
+                fields={
+                # JSONデータをテキストとして含める
+                'data': ('data', data_str, 'application/json'),
+                # 音声データを含める
+                'audio': ('output.wav', binary, 'audio/wav'),
+                # サンプルレートもフィールドに追加
+                'samplerate': ('samplerate', samplerate_str, 'text/plain')
+                }
+            )
+            return Response(
+                multipart_data.to_string(),
+                mimetype=multipart_data.content_type
+            )
+
+        except Exception as e:
+            logger.error(f"Error generating audio: {e}")
+        
+
+
+        
 
     @app.get("/models/info")
     def get_loaded_models_info():
@@ -245,63 +296,6 @@ if __name__ == "__main__":
                 "style2id": model.style2id,
             }
         return result
-
-    @app.post("/models/refresh")
-    def refresh():
-        """モデルをパスに追加/削除した際などに読み込ませる"""
-        model_holder.refresh()
-        load_models(model_holder)
-        return get_loaded_models_info()
-
-    @app.get("/status")
-    def get_status():
-        """実行環境のステータスを取得"""
-        cpu_percent = psutil.cpu_percent(interval=1)
-        memory_info = psutil.virtual_memory()
-        memory_total = memory_info.total
-        memory_available = memory_info.available
-        memory_used = memory_info.used
-        memory_percent = memory_info.percent
-        gpuInfo = []
-        devices = ["cpu"]
-        for i in range(torch.cuda.device_count()):
-            devices.append(f"cuda:{i}")
-        gpus = GPUtil.getGPUs()
-        for gpu in gpus:
-            gpuInfo.append(
-                {
-                    "gpu_id": gpu.id,
-                    "gpu_load": gpu.load,
-                    "gpu_memory": {
-                        "total": gpu.memoryTotal,
-                        "used": gpu.memoryUsed,
-                        "free": gpu.memoryFree,
-                    },
-                }
-            )
-        return {
-            "devices": devices,
-            "cpu_percent": cpu_percent,
-            "memory_total": memory_total,
-            "memory_available": memory_available,
-            "memory_used": memory_used,
-            "memory_percent": memory_percent,
-            "gpu": gpuInfo,
-        }
-
-    @app.get("/tools/get_audio", response_class=AudioResponse)
-    def get_audio(
-        request: Request, path: str = Query(..., description="local wav path")
-    ):
-        """wavデータを取得する"""
-        logger.info(
-            f"{request.client.host}:{request.client.port}/tools/get_audio  { unquote(str(request.query_params) )}"
-        )
-        if not os.path.isfile(path):
-            raise_validation_error(f"path={path} not found", "path")
-        if not path.lower().endswith(".wav"):
-            raise_validation_error(f"wav file not found in {path}", "path")
-        return FileResponse(path=path, media_type="audio/wav")
 
     logger.info(f"server listen: http://127.0.0.1:{config.server_config.port}")
     logger.info(f"API docs: http://127.0.0.1:{config.server_config.port}/docs")
