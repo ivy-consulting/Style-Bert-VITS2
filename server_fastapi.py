@@ -76,7 +76,7 @@ def raise_validation_error(msg: str, param: str):
 
 
 class AudioResponse(Response):
-    media_type = "audio/wav"
+    media_type = "multipart/form-data"
 
 
 loaded_models: list[TTSModel] = []
@@ -271,12 +271,11 @@ if __name__ == "__main__":
             )
 
 
-            logger.info(multipart_data)
-            
-            return Response(
-                multipart_data.to_string(),
-                mimetype=multipart_data.content_type
-            )
+            logger.info("Generating audio -----------------------------------------")
+
+            response = AudioResponse(multipart_data.to_string())
+            response.headers['Content-Type'] = multipart_data.content_type
+            return response
 
         except Exception as e:
             logger.error(f"Error generating audio: {e}")
