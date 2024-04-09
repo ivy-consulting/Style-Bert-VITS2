@@ -269,6 +269,10 @@ if __name__ == "__main__":
                 'samplerate': ('samplerate', samplerate_str, 'text/plain')
                 }
             )
+
+
+            logger.info(multipart_data)
+            
             return Response(
                 multipart_data.to_string(),
                 mimetype=multipart_data.content_type
