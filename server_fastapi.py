@@ -300,8 +300,8 @@ if __name__ == "__main__":
             }
         return result
 
-    logger.info(f"server listen: http://127.0.0.1:{config.server_config.port}")
-    logger.info(f"API docs: http://127.0.0.1:{config.server_config.port}/docs")
+    logger.info(f"server listen: http://127.0.0.1:5001")
+    logger.info(f"API docs: http://127.0.0.1:5001/docs")
     uvicorn.run(
-        app, port=config.server_config.port, host="0.0.0.0", log_level="warning"
+        app, port=5001, host="0.0.0.0", log_level="warning"
     )
