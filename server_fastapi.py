@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Optional
 from urllib.parse import unquote
 from pydantic import BaseModel
+import time
 
 import GPUtil
 import psutil
@@ -253,11 +254,17 @@ if __name__ == "__main__":
 
             audio_path = "./output.wav"
             binary, samplerate = createBinary('./output.wav')
+
+            start_time = time.time()
             samplerate_str = str(samplerate)
 
             # create vowel and vowel_length
             data = audio_query_json(audio_path=audio_path, mapping_file="AudioPhoneticsLab/files/mapping.json")
             data_str = json.dumps(data)
+            end_time = time.time()
+
+            logger.info(f"The time it take to generate a mora for text: {text}" is {end_time - start_time} seconds)
+
 
             multipart_data = MultipartEncoder(
                 fields={
