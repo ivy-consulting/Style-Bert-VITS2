@@ -263,7 +263,7 @@ if __name__ == "__main__":
             data_str = json.dumps(data)
             end_time = time.time()
 
-            logger.info(f"The time it take to generate a mora for text: {text}" is {end_time - start_time} seconds)
+            logger.info(f"The time it take to generate a mora for text: {text} is {end_time - start_time} seconds")
 
 
             multipart_data = MultipartEncoder(
