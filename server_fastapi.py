@@ -191,6 +191,7 @@ if __name__ == "__main__":
             None, description="スタイルを音声ファイルで行う"
         ),
     ):
+        audio_start_time = time.time()
         """Infer text to speech(テキストから感情付き音声を生成する)"""
         logger.info(
             f"{request.client.host}:{request.client.port}/voice  { unquote(str(request.query_params) )}"
@@ -240,6 +241,8 @@ if __name__ == "__main__":
             style_weight=style_weight,
         )
 
+        
+
         wav_bytes_io = BytesIO()
         wavfile.write(wav_bytes_io, sr, audio.astype('int16'))  # Ensure audio data type is int16
         wav_bytes_io.seek(0)
@@ -250,6 +253,9 @@ if __name__ == "__main__":
             logger.info("audio data vlue:", audio_data.getvalue())
             with open("output.wav", "wb") as f:
                 f.write(audio_data.getvalue())
+                
+            audio_end = time.time()
+
             logger.success("Audio data generated and sent successfully")
 
             audio_path = "./output.wav"
@@ -264,6 +270,7 @@ if __name__ == "__main__":
             end_time = time.time()
 
             logger.info(f"The time it take to generate a mora for text: {text} is {end_time - start_time} seconds")
+            logger.info(f"The time it take to generate a speech synthesis: {text} is {audio_end - audio_start_time} seconds")
 
 
             multipart_data = MultipartEncoder(
