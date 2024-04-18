@@ -111,10 +111,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if args.cpu:
-        device = "cpu"
-    else:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info("Its using the GPU")  if torch.cuda.is_available() else logger.warning("Its not using GPU, it will make it slow.")
 
     model_dir = Path(args.dir)
     model_holder = TTSModelHolder(model_dir, device)
