@@ -387,6 +387,11 @@ def raise_validation_error(msg: str, param: str):
 class AudioResponse(Response):
     media_type = "audio/wav"
 
+def createBinary(audio_path):
+  data, samplerate = sf.read(audio_path, dtype='int16')
+  binary_data = data.tobytes()
+  return binary_data, samplerate
+
 
 loaded_models: list[TTSModel] = []
 
