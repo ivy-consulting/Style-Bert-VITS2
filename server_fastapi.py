@@ -21,8 +21,6 @@ from fastapi import FastAPI, HTTPException, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from scipy.io import wavfile
-from AudioPhoneticsLab.scripts.speech_symbol_timestamps import audio_query_json
-from createVoice import createVoice
 
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 import json
@@ -264,18 +262,13 @@ if __name__ == "__main__":
             samplerate_str = str(samplerate)
 
             # create vowel and vowel_length
-            data = audio_query_json(audio_path=audio_path, mapping_file="AudioPhoneticsLab/files/mapping.json")
-            data_str = json.dumps(data)
             end_time = time.time()
 
-            logger.info(f"The time it take to generate a mora for text: {text} is {end_time - start_time} seconds")
             logger.info(f"The time it take to generate a speech synthesis: {text} is {audio_end - audio_start_time} seconds")
 
 
             multipart_data = MultipartEncoder(
                 fields={
-                # JSONデータをテキストとして含める
-                'data': ('data', data_str, 'application/json'),
                 # 音声データを含める
                 'audio': ('output.wav', binary, 'audio/wav'),
                 # サンプルレートもフィールドに追加
