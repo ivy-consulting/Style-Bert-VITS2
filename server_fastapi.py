@@ -10,7 +10,7 @@
 # from pathlib import Path
 # from typing import Any, Optional
 # from urllib.parse import unquote
-# from pydantic import BaseModel
+from pydantic import BaseModel
 # import time
 
 # import GPUtil
@@ -20,11 +20,11 @@
 # from fastapi import FastAPI, HTTPException, Query, Request, status
 # from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.responses import FileResponse, Response
-# from scipy.io import wavfile
+from scipy.io import wavfile
 
-# from requests_toolbelt.multipart.encoder import MultipartEncoder
-# import json
-# import soundfile as sf
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+import json
+import soundfile as sf
 
 # from config import config
 # from style_bert_vits2.constants import (
@@ -390,6 +390,9 @@ class AudioResponse(Response):
 
 loaded_models: list[TTSModel] = []
 
+class ByteAudioResponse(Response):
+    media_type = "multipart/form-data"
+
 
 def load_models(model_holder: TTSModelHolder):
     global loaded_models
@@ -448,7 +451,7 @@ if __name__ == "__main__":
     # app.logger = logger
     # ↑効いていなさそう。loggerをどうやって上書きするかはよく分からなかった。
 
-    @app.api_route("/voice", methods=["GET", "POST"], response_class=AudioResponse)
+    @app.api_route("/voice", methods=["POST"], response_class=AudioResponse)
     async def voice(
         request: Request,
         text: str = Query(..., min_length=1, max_length=limit, description="セリフ"),
@@ -552,6 +555,153 @@ if __name__ == "__main__":
             end_time = time.time()
             logger.info(f"It took {end_time - start_time} seconds to generate the audio!")
             return Response(content=wavContent.getvalue(), media_type="audio/wav")
+
+    @app.api_route("/audioByteArray", methods=["GET", "POST"], response_class=ByteAudioResponse)
+    async def voice(
+        request: Request,
+        text: str = Query(..., min_length=1, max_length=limit, description="セリフ"),
+        encoding: str = Query(None, description="textをURLデコードする(ex, `utf-8`)"),
+        model_id: int = Query(
+            0, description="モデルID。`GET /models/info`のkeyの値を指定ください"
+        ),
+        speaker_name: str = Query(
+            None,
+            description="話者名(speaker_idより優先)。esd.listの2列目の文字列を指定",
+        ),
+        speaker_id: int = Query(
+            0, description="話者ID。model_assets>[model]>config.json内のspk2idを確認"
+        ),
+        sdp_ratio: float = Query(
+            DEFAULT_SDP_RATIO,
+            description="SDP(Stochastic Duration Predictor)/DP混合比。比率が高くなるほどトーンのばらつきが大きくなる",
+        ),
+        noise: float = Query(
+            DEFAULT_NOISE,
+            description="サンプルノイズの割合。大きくするほどランダム性が高まる",
+        ),
+        noisew: float = Query(
+            DEFAULT_NOISEW,
+            description="SDPノイズ。大きくするほど発音の間隔にばらつきが出やすくなる",
+        ),
+        length: float = Query(
+            DEFAULT_LENGTH,
+            description="話速。基準は1で大きくするほど音声は長くなり読み上げが遅まる",
+        ),
+        language: Languages = Query(ln, description="textの言語"),
+        auto_split: bool = Query(DEFAULT_LINE_SPLIT, description="改行で分けて生成"),
+        split_interval: float = Query(
+            DEFAULT_SPLIT_INTERVAL, description="分けた場合に挟む無音の長さ（秒）"
+        ),
+        assist_text: Optional[str] = Query(
+            None,
+            description="このテキストの読み上げと似た声音・感情になりやすくなる。ただし抑揚やテンポ等が犠牲になる傾向がある",
+        ),
+        assist_text_weight: float = Query(
+            DEFAULT_ASSIST_TEXT_WEIGHT, description="assist_textの強さ"
+        ),
+        style: Optional[str] = Query(DEFAULT_STYLE, description="スタイル"),
+        style_weight: float = Query(DEFAULT_STYLE_WEIGHT, description="スタイルの強さ"),
+        reference_audio_path: Optional[str] = Query(
+            None, description="スタイルを音声ファイルで行う"
+        ),
+    ):
+        audio_start_time = time.time()
+        """Infer text to speech(テキストから感情付き音声を生成する)"""
+        logger.info(
+            f"{request.client.host}:{request.client.port}/voice  { unquote(str(request.query_params) )}"
+        )
+        if request.method == "GET":
+            logger.warning(
+                "The GET method is not recommended for this endpoint due to various restrictions. Please use the POST method."
+            )
+        if model_id >= len(
+            model_holder.model_names
+        ):  # /models/refresh があるためQuery(le)で表現不可
+            raise_validation_error(f"model_id={model_id} not found", "model_id")
+
+        model = loaded_models[model_id]
+
+        if speaker_name is None:
+            if speaker_id not in model.id2spk.keys():
+                raise_validation_error(
+                    f"speaker_id={speaker_id} not found", "speaker_id"
+                )
+        else:
+            if speaker_name not in model.spk2id.keys():
+                raise_validation_error(
+                    f"speaker_name={speaker_name} not found", "speaker_name"
+                )
+            speaker_id = model.spk2id[speaker_name]
+        if style not in model.style2id.keys():
+            raise_validation_error(f"style={style} not found", "style")
+        assert style is not None
+        if encoding is not None:
+            text = unquote(text, encoding=encoding)
+        sr, audio = model.infer(
+            text=text,
+            language=language,
+            speaker_id=speaker_id,
+            reference_audio_path=reference_audio_path,
+            sdp_ratio=sdp_ratio,
+            noise=noise,
+            noise_w=noisew,
+            length=length,
+            line_split=auto_split,
+            split_interval=split_interval,
+            assist_text=assist_text,
+            assist_text_weight=assist_text_weight,
+            use_assist_text=bool(assist_text),
+            style=style,
+            style_weight=style_weight,
+        )
+
+        
+
+        wav_bytes_io = BytesIO()
+        wavfile.write(wav_bytes_io, sr, audio.astype('int16'))  # Ensure audio data type is int16
+        wav_bytes_io.seek(0)
+
+        try:
+            audio_data = wav_bytes_io
+            # Now you can do something with the audio data, such as saving it to a 
+            logger.info("audio data vlue:", audio_data.getvalue())
+            with open("output.wav", "wb") as f:
+                f.write(audio_data.getvalue())
+                
+            audio_end = time.time()
+
+            logger.success("Audio data generated and sent successfully")
+
+            audio_path = "./output.wav"
+            binary, samplerate = createBinary('./output.wav')
+
+            start_time = time.time()
+            samplerate_str = str(samplerate)
+
+            # create vowel and vowel_length
+            end_time = time.time()
+
+            logger.info(f"The time it take to generate a speech synthesis: {text} is {audio_end - audio_start_time} seconds")
+
+
+            multipart_data = MultipartEncoder(
+                fields={
+                # 音声データを含める
+                'audio': ('output.wav', binary, 'audio/wav'),
+                # サンプルレートもフィールドに追加
+                'samplerate': ('samplerate', samplerate_str, 'text/plain')
+                }
+            )
+
+
+            logger.info("Generating audio -----------------------------------------")
+
+            response = ByteAudioResponse(multipart_data.to_string())
+            response.headers['Content-Type'] = multipart_data.content_type
+            return response
+
+        except Exception as e:
+            logger.error(f"Error generating audio: {e}")
 
     @app.get("/models/info")
     def get_loaded_models_info():
