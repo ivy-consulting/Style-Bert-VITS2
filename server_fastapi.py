@@ -431,6 +431,8 @@ if __name__ == "__main__":
 
     if not torch.cuda.is_available():
         logger.warning("The synthesis is not using GPU! use GPU to get better performance!")
+    else:
+        logger.success("The synthesis is using GPU! you will get a better performance!")
 
     model_dir = Path(args.dir)
     model_holder = TTSModelHolder(model_dir, device)
