@@ -422,6 +422,8 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    logger.info(f"Checking args.cpu: {args.cpu}")
+
     if args.cpu:
         device = "cpu"
     else:
