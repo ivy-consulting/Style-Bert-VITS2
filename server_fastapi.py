@@ -347,6 +347,7 @@ from style_bert_vits2.constants import (
     DEFAULT_SPLIT_INTERVAL,
     DEFAULT_STYLE,
     DEFAULT_STYLE_WEIGHT,
+    DEFAULT_PITCH_SCALE,
     Languages,
 )
 from style_bert_vits2.logging import logger
@@ -508,6 +509,7 @@ if __name__ == "__main__":
         reference_audio_path: Optional[str] = Query(
             None, description="スタイルを音声ファイルで行う"
         ),
+        pitch_scale: float = Query(DEFAULT_PITCH_SCALE, description="Enter a pitch scale.")
     ):
         start_time = time.time()
 
@@ -557,6 +559,7 @@ if __name__ == "__main__":
             use_assist_text=bool(assist_text),
             style=style,
             style_weight=style_weight,
+            pitch_scale=pitch_scale,
         )
         logger.success("Audio data generated and sent successfully")
         with BytesIO() as wavContent:
