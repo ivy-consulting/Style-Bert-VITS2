@@ -465,7 +465,7 @@ if __name__ == "__main__":
     @app.api_route("/voice", methods=["POST"], response_class=AudioResponse)
     async def voice(
         request: Request,
-        text: str = Query(..., min_length=1, max_length=limit, description="セリフ"),
+        text: str = Query(..., min_length=1, description="セリフ"),
         encoding: str = Query(None, description="textをURLデコードする(ex, `utf-8`)"),
         model_id: int = Query(
             0, description="モデルID。`GET /models/info`のkeyの値を指定ください"
@@ -574,7 +574,7 @@ if __name__ == "__main__":
     @app.api_route("/audioByteArray", methods=["GET", "POST"], response_class=ByteAudioResponse)
     async def voice(
         request: Request,
-        text: str = Query(..., min_length=1, max_length=limit, description="セリフ"),
+        text: str = Query(..., min_length=1, description="セリフ"),
         encoding: str = Query(None, description="textをURLデコードする(ex, `utf-8`)"),
         model_id: int = Query(
             0, description="モデルID。`GET /models/info`のkeyの値を指定ください"
