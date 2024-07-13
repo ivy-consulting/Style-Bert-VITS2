@@ -724,8 +724,8 @@ if __name__ == "__main__":
         """Retrieve information about the loaded models"""
 
         result: dict[str, dict[str, Any]] = dict()
-        for model_name, model in loaded_models.items():
-            result[model_name] = {
+        for model_id, model in enumerate(loaded_models):
+            result[str(model_id)] = {
                 "config_path": str(model.config_path),
                 "model_path": str(model.model_path),
                 "device": model.device,
