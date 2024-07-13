@@ -402,18 +402,17 @@ class ByteAudioResponse(Response):
 
 
 def load_models(model_holder: TTSModelHolder):
-    global loaded_models
-    loaded_models = []
-    for model_name, model_paths in model_holder.model_files_dict.items():
+    for model_name, paths in model_holder.model_files_dict.items():
         model = TTSModel(
-            model_path=model_paths[0],
-            config_path=model_holder.root_dir / model_name / "config.json",
-            style_vec_path=model_holder.root_dir / model_name / "style_vectors.npy",
+            model_path=Path(paths["model_path"]),
+            config_path=Path(paths["config_path"]),
+            style_vec_path=Path(paths.get("style_vec_path", "")),
             device=model_holder.device,
         )
-        # 起動時に全てのモデルを読み込むのは時間がかかりメモリを食うのでやめる
+        # Avoid loading all models at startup to save time and memory
         # model.load()
         loaded_models.append(model)
+
 
 
 if __name__ == "__main__":
@@ -530,6 +529,7 @@ if __name__ == "__main__":
             raise_validation_error(f"model_id={model_id} not found", "model_id")
 
         model = loaded_models[model_id]
+
         if speaker_name is None:
             if speaker_id not in model.id2spk.keys():
                 raise_validation_error(
@@ -721,13 +721,13 @@ if __name__ == "__main__":
 
     @app.get("/models/info")
     def get_loaded_models_info():
-        """ロードされたモデル情報の取得"""
+        """Retrieve information about the loaded models"""
 
         result: dict[str, dict[str, Any]] = dict()
-        for model_id, model in enumerate(loaded_models):
-            result[str(model_id)] = {
-                "config_path": model.config_path,
-                "model_path": model.model_path,
+        for model_name, model in loaded_models.items():
+            result[model_name] = {
+                "config_path": str(model.config_path),
+                "model_path": str(model.model_path),
                 "device": model.device,
                 "spk2id": model.spk2id,
                 "id2spk": model.id2spk,
