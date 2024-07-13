@@ -436,10 +436,11 @@ if __name__ == "__main__":
     else:
         logger.success("The synthesis is using GPU! you will get a better performance!")
 
-    model_dir = Path(args.dir)
-    model_holder = TTSModelHolder(model_dir, device)
+    # model_dir = Path(args.dir)
+    model_config = Path("model_config.json")
+    model_holder = TTSModelHolder(model_config, device)
     if len(model_holder.model_names) == 0:
-        logger.error(f"Models not found in {model_dir}.")
+        logger.error(f"Models not found in {model_config}.")
         sys.exit(1)
 
     logger.info("Loading models...")

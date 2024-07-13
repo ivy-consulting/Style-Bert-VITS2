@@ -1,0 +1,65 @@
+{
+    "models": {
+      "tts-model-actor1-emotion": {
+        "model_path": "model_assets/tts-model-actor1-emotion/merged-model.safetensors",
+        "config_path": "model_assets/tts-model-actor1-emotion/config.json",
+        "style_vec_path": "model_assets/tts-model-actor1-emotion/style_vectors.npy"
+      },
+      "tts-model-z-japanese-shiratori": {
+        "model_path": "model_assets/tts-model-z-japanese-shiratori/shiratori-model-merged.safetensors",
+        "config_path": "model_assets/tts-model-z-japanese-shiratori/config.json",
+        "style_vec_path": "model_assets/tts-model-z-japanese-shiratori/style_vectors.npy"
+      },
+      "tts-model-santome": {
+        "model_path": "model_assets/tts-model-santome/merged-model.safetensors",
+        "config_path": "model_assets/tts-model-santome/config.json",
+        "style_vec_path": "model_assets/tts-model-santome/style_vectors.npy"
+      },
+      "tts-model": {
+        "model_path": "model_assets/tts-model/tts-model_e61_s56000.safetensors",
+        "config_path": "model_assets/tts-model/config.json",
+        "style_vec_path": "model_assets/tts-model/style_vectors.npy"
+      },
+      "tts-model-satome-sad": {
+        "model_path": "model_assets/tts-model-satome-sad/merged-model-santome.safetensors",
+        "config_path": "model_assets/tts-model-satome-sad/config.json",
+        "style_vec_path": "model_assets/tts-model-satome-sad/style_vectors.npy"
+      },
+      "tts-model-z-english-v1": {
+        "model_path": "model_assets/tts-model-z-english-v1/z-english-v1.safetensors",
+        "config_path": "model_assets/tts-model-z-english-v1/config.json",
+        "style_vec_path": "model_assets/tts-model-z-english-v1/style_vectors.npy"
+      },
+      "tts-model-z-english-v2-shiratori": {
+        "model_path": "model_assets/tts-model-z-english-v2-shiratori/shiratori-model.safetensors",
+        "config_path": "model_assets/tts-model-z-english-v2-shiratori/config.json",
+        "style_vec_path": "model_assets/tts-model-z-english-v2-shiratori/style_vectors.npy"
+      },
+      "tts-model-z-z-igarashi-umika-hanaka": {
+        "model_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/z1-5-speakers.safetensors",
+        "config_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/config.json",
+        "style_vec_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/style_vectors.npy"
+      },
+      "jvnv-M2-jp": {
+        "model_path": "model_assets/jvnv-M2-jp/jvnv-M2-jp_e159_s17000.safetensors",
+        "config_path": "model_assets/jvnv-M2-jp/config.json",
+        "style_vec_path": "model_assets/jvnv-M2-jp/style_vectors.npy"
+      },
+      "jvnv-M1-jp": {
+        "model_path": "model_assets/jvnv-M1-jp/jvnv-M1-jp_e158_s14000.safetensors",
+        "config_path": "model_assets/jvnv-M1-jp/config.json",
+        "style_vec_path": "model_assets/jvnv-M1-jp/style_vectors.npy"
+      },
+      "jvnv-F2-jp": {
+        "model_path": "model_assets/jvnv-F2-jp/jvnv-F2_e166_s20000.safetensors",
+        "config_path": "model_assets/jvnv-F2-jp/config.json",
+        "style_vec_path": "model_assets/jvnv-F2-jp/style_vectors.npy"
+      },
+      "jvnv-F1-jp": {
+        "model_path": "model_assets/jvnv-F1-jp/jvnv-F1-jp_e160_s14000.safetensors",
+        "config_path": "model_assets/jvnv-F1-jp/config.json",
+        "style_vec_path": "model_assets/jvnv-F1-jp/style_vectors.npy"
+      }
+    }
+  }
+  

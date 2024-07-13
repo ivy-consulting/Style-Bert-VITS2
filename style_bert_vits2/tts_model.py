@@ -1,11 +1,13 @@
 import warnings
 from pathlib import Path
-from typing import Any, Optional, Union
-
+import json
+from pathlib import Path
+from typing import Optional, List, Dict, Any, Union
+import torch
 import gradio as gr
+
 import numpy as np
 import pyannote.audio
-import torch
 from gradio.processing_utils import convert_to_16_bit_wav
 from numpy.typing import NDArray
 from pydantic import BaseModel
@@ -273,122 +275,93 @@ class TTSModelInfo(BaseModel):
 
 class TTSModelHolder:
     """
-    Style-Bert-Vits2 の音声合成モデルを管理するクラス。
-    model_holder.models_info から指定されたディレクトリ内にある音声合成モデルの一覧を取得できる。
+    Class to manage Style-Bert-Vits2 voice synthesis models.
     """
 
-    def __init__(self, model_root_dir: Path, device: str) -> None:
+    def __init__(self, config_file: Path, device: str) -> None:
         """
-        Style-Bert-Vits2 の音声合成モデルを管理するクラスを初期化する。
-        音声合成モデルは下記のように配置されていることを前提とする (.safetensors のファイル名は自由) 。
-        ```
-        model_root_dir
-        ├── model-name-1
-        │   ├── config.json
-        │   ├── model-name-1_e160_s14000.safetensors
-        │   └── style_vectors.npy
-        ├── model-name-2
-        │   ├── config.json
-        │   ├── model-name-2_e160_s14000.safetensors
-        │   └── style_vectors.npy
-        └── ...
-        ```
+        Initialize the TTSModelHolder class.
 
         Args:
-            model_root_dir (Path): 音声合成モデルが配置されているディレクトリのパス
-            device (str): 音声合成時に利用するデバイス (cpu, cuda, mps など)
+            config_file (Path): Path to the JSON configuration file
+            device (str): Device to be used for synthesis (cpu, cuda, etc.)
         """
-
-        self.root_dir: Path = model_root_dir
         self.device: str = device
-        self.model_files_dict: dict[str, list[Path]] = {}
+        self.config_file: Path = config_file
+        self.root_dir: Path = config_file.parent
+        self.model_files_dict: Dict[str, Dict[str, str]] = {}
         self.current_model: Optional[TTSModel] = None
-        self.model_names: list[str] = []
-        self.models_info: list[TTSModelInfo] = []
+        self.model_names: List[str] = []
+        self.models_info: List[TTSModelInfo] = []
         self.refresh()
 
     def refresh(self) -> None:
         """
-        音声合成モデルの一覧を更新する。
+        Update the list of voice synthesis models.
         """
+        with open(self.config_file, 'r') as f:
+            config = json.load(f)
 
-        self.model_files_dict = {}
-        self.model_names = []
+        self.model_files_dict = config.get('models', {})
+        self.model_names = list(self.model_files_dict.keys())
         self.current_model = None
         self.models_info = []
 
-        model_dirs = [d for d in self.root_dir.iterdir() if d.is_dir()]
-        for model_dir in model_dirs:
-            model_files = [
-                f
-                for f in model_dir.iterdir()
-                if f.suffix in [".pth", ".pt", ".safetensors"]
-            ]
-            if len(model_files) == 0:
-                logger.warning(f"No model files found in {model_dir}, so skip it")
-                continue
-            config_path = model_dir / "config.json"
-            if not config_path.exists():
-                logger.warning(
-                    f"Config file {config_path} not found, so skip {model_dir}"
-                )
-                continue
-            self.model_files_dict[model_dir.name] = model_files
-            self.model_names.append(model_dir.name)
+        for model_name, paths in self.model_files_dict.items():
+            model_path = paths["model_path"]
+            config_path = paths["config_path"]
+            style_vec_path = paths.get("style_vec_path", None)
+
             hyper_parameters = HyperParameters.load_from_json(config_path)
-            style2id: dict[str, int] = hyper_parameters.data.style2id
+            style2id: Dict[str, int] = hyper_parameters.data.style2id
             styles = list(style2id.keys())
-            spk2id: dict[str, int] = hyper_parameters.data.spk2id
+            spk2id: Dict[str, int] = hyper_parameters.data.spk2id
             speakers = list(spk2id.keys())
+
             self.models_info.append(
                 TTSModelInfo(
-                    name=model_dir.name,
-                    files=[str(f) for f in model_files],
+                    name=model_name,
+                    files=[model_path],
                     styles=styles,
                     speakers=speakers,
                 )
             )
 
-    def get_model(self, model_name: str, model_path_str: str) -> TTSModel:
+    def get_model(self, model_name: str) -> TTSModel:
         """
-        指定された音声合成モデルのインスタンスを取得する。
-        この時点ではモデルはロードされていない (明示的にロードしたい場合は model.load() を呼び出す)。
+        Get the instance of the specified voice synthesis model.
 
         Args:
-            model_name (str): 音声合成モデルの名前
-            model_path_str (str): 音声合成モデルのファイルパス (.safetensors)
+            model_name (str): Name of the voice synthesis model
 
         Returns:
-            TTSModel: 音声合成モデルのインスタンス
+            TTSModel: Instance of the voice synthesis model
         """
-
-        model_path = Path(model_path_str)
         if model_name not in self.model_files_dict:
             raise ValueError(f"Model `{model_name}` is not found")
-        if model_path not in self.model_files_dict[model_name]:
-            raise ValueError(f"Model file `{model_path}` is not found")
+
+        paths = self.model_files_dict[model_name]
+        model_path = Path(paths["model_path"])
+        config_path = Path(paths["config_path"])
+        style_vec_path = Path(paths.get("style_vec_path", ""))
+
         if self.current_model is None or self.current_model.model_path != model_path:
             self.current_model = TTSModel(
                 model_path=model_path,
-                config_path=self.root_dir / model_name / "config.json",
-                style_vec_path=self.root_dir / model_name / "style_vectors.npy",
+                config_path=config_path,
+                style_vec_path=style_vec_path,
                 device=self.device,
             )
 
         return self.current_model
 
-    def get_model_for_gradio(
-        self, model_name: str, model_path_str: str
-    ) -> tuple[gr.Dropdown, gr.Button, gr.Dropdown]:
-        model_path = Path(model_path_str)
+    def get_model_for_gradio(self, model_name: str) -> tuple[gr.Dropdown, gr.Button, gr.Dropdown]:
         if model_name not in self.model_files_dict:
             raise ValueError(f"Model `{model_name}` is not found")
-        if model_path not in self.model_files_dict[model_name]:
-            raise ValueError(f"Model file `{model_path}` is not found")
-        if (
-            self.current_model is not None
-            and self.current_model.model_path == model_path
-        ):
+
+        paths = self.model_files_dict[model_name]
+        model_path = Path(paths["model_path"])
+        if self.current_model is not None and self.current_model.model_path == model_path:
             # Already loaded
             speakers = list(self.current_model.spk2id.keys())
             styles = list(self.current_model.style2id.keys())
@@ -397,10 +370,14 @@ class TTSModelHolder:
                 gr.Button(interactive=True, value="音声合成"),
                 gr.Dropdown(choices=speakers, value=speakers[0]),  # type: ignore
             )
+
+        config_path = Path(paths["config_path"])
+        style_vec_path = Path(paths.get("style_vec_path", ""))
+
         self.current_model = TTSModel(
             model_path=model_path,
-            config_path=self.root_dir / model_name / "config.json",
-            style_vec_path=self.root_dir / model_name / "style_vectors.npy",
+            config_path=config_path,
+            style_vec_path=style_vec_path,
             device=self.device,
         )
         speakers = list(self.current_model.spk2id.keys())
@@ -412,15 +389,15 @@ class TTSModelHolder:
         )
 
     def update_model_files_for_gradio(self, model_name: str) -> gr.Dropdown:
-        model_files = self.model_files_dict[model_name]
+        if model_name not in self.model_files_dict:
+            raise ValueError(f"Model `{model_name}` is not found")
+        model_files = [self.model_files_dict[model_name]["model_path"]]
         return gr.Dropdown(choices=model_files, value=model_files[0])  # type: ignore
 
-    def update_model_names_for_gradio(
-        self,
-    ) -> tuple[gr.Dropdown, gr.Dropdown, gr.Button]:
+    def update_model_names_for_gradio(self) -> tuple[gr.Dropdown, gr.Dropdown, gr.Button]:
         self.refresh()
         initial_model_name = self.model_names[0]
-        initial_model_files = self.model_files_dict[initial_model_name]
+        initial_model_files = [self.model_files_dict[initial_model_name]["model_path"]]
         return (
             gr.Dropdown(choices=self.model_names, value=initial_model_name),  # type: ignore
             gr.Dropdown(choices=initial_model_files, value=initial_model_files[0]),  # type: ignore
