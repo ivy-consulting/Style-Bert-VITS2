@@ -40,7 +40,8 @@ device = args.device
 if device == "cuda" and not torch.cuda.is_available():
     device = "cpu"
 
-model_holder = TTSModelHolder(Path(assets_root), device)
+model_config = Path("model_config.json")
+model_holder = TTSModelHolder(model_config, device)
 
 with gr.Blocks(theme=GRADIO_THEME) as app:
     gr.Markdown(f"# Style-Bert-VITS2 WebUI (version {VERSION})")
