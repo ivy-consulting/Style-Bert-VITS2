@@ -39,6 +39,11 @@
         "model_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/z1-5-speakers.safetensors",
         "config_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/config.json",
         "style_vec_path": "model_assets/tts-model-z-z-igarashi-umika-hanaka/style_vectors.npy"
+      },
+      "igarashi-eng": {
+        "model_path": "model_assets/igarashi-eng/igarashi-eng.safetensors",
+        "config_path": "model_assets/igarashi-eng/config.json",
+        "style_vec_path": "model_assets/igarashi-eng/style_vectors.npy"
       }
     }
   }
