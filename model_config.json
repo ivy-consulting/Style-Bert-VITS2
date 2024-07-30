@@ -44,6 +44,11 @@
         "model_path": "model_assets/igarashi-eng/igarashi-eng.safetensors",
         "config_path": "model_assets/igarashi-eng/config.json",
         "style_vec_path": "model_assets/igarashi-eng/style_vectors.npy"
+      },
+      "saionji-sad": {
+        "model_path": "model_assets/saionji-sad/tts-saionji-sad.safetensors",
+        "config_path": "model_assets/saionji-sad/config.json",
+        "style_vec_path": "model_assets/saionji-sad/style_vectors.npy"
       }
     }
   }
