@@ -49,6 +49,16 @@
         "model_path": "model_assets/saionji-sad/tts-saionji-sad.safetensors",
         "config_path": "model_assets/saionji-sad/config.json",
         "style_vec_path": "model_assets/saionji-sad/style_vectors.npy"
+      },
+      "saotome+test": {
+        "model_path": "model_assets/saotome+test/0807_saotome+EmotionalmodelSad.safetensors",
+        "config_path": "model_assets/saotome+test/config.json",
+        "style_vec_path": "model_assets/saotome+test/style_vectors.npy"
+      },
+      "saionji+test": {
+        "model_path": "model_assets/saionji+test/0807_saionji+EmotionalmodelSad.safetensors",
+        "config_path": "model_assets/saionji+test/config.json",
+        "style_vec_path": "model_assets/saionji+test/style_vectors.npy"
       }
     }
   }
