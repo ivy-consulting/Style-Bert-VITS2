@@ -1,4 +1,5 @@
 import enum
+from typing import List
 
 
 class StrEnum(str, enum.Enum):
@@ -29,7 +30,7 @@ class StrEnum(str, enum.Enum):
 
     @staticmethod
     def _generate_next_value_(
-        name: str, start: int, count: int, last_values: list[str]
+        name: str, start: int, count: int, last_values: List[str]
     ) -> str:
         """
         Return the lower-cased version of the member name.

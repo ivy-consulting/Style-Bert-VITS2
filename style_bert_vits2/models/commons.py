@@ -3,7 +3,7 @@
 コードと完全に一致している保証はない。あくまで参考程度とすること。
 """
 
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, List, Tuple
 
 import torch
 from torch.nn import functional as F
@@ -37,7 +37,7 @@ def get_padding(kernel_size: int, dilation: int = 1) -> int:
     return int((kernel_size * dilation - dilation) / 2)
 
 
-def convert_pad_shape(pad_shape: list[list[Any]]) -> list[Any]:
+def convert_pad_shape(pad_shape: List[List[Any]]) -> List[Any]:
     """
     パディングの形状を変換する
 
@@ -52,7 +52,7 @@ def convert_pad_shape(pad_shape: list[list[Any]]) -> list[Any]:
     return new_pad_shape
 
 
-def intersperse(lst: list[Any], item: Any) -> list[Any]:
+def intersperse(lst: List[Any], item: Any) -> List[Any]:
     """
     リストの要素の間に特定のアイテムを挿入する
 
@@ -90,7 +90,7 @@ def slice_segments(
 
 def rand_slice_segments(
     x: torch.Tensor, x_lengths: Optional[torch.Tensor] = None, segment_size: int = 4
-) -> tuple[torch.Tensor, torch.Tensor]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     ランダムなセグメントをスライスする
 
@@ -190,7 +190,7 @@ def generate_path(duration: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
 
 
 def clip_grad_value_(
-    parameters: Union[torch.Tensor, list[torch.Tensor]],
+    parameters: Union[torch.Tensor, List[torch.Tensor]],
     clip_value: Optional[float],
     norm_type: float = 2.0,
 ) -> float:

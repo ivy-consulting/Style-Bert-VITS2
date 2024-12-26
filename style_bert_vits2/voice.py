@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 import pyworld
@@ -10,7 +10,7 @@ def adjust_voice(
     wave: NDArray[Any],
     pitch_scale: float = 1.0,
     intonation_scale: float = 1.0,
-) -> tuple[int, NDArray[Any]]:
+) -> Tuple[int, NDArray[Any]]:
     """
     音声のピッチと抑揚を調整する。
     変更すると若干音質が劣化するので、どちらも初期値のままならそのまま返す。

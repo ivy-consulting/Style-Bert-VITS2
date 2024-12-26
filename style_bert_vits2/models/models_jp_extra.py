@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional
+from typing import Any, Optional, List, Tuple
 
 import torch
 from torch import nn
@@ -65,7 +65,7 @@ class DurationDiscriminator(nn.Module):  # vits2
         dur_r: torch.Tensor,
         dur_hat: torch.Tensor,
         g: Optional[torch.Tensor] = None,
-    ) -> list[torch.Tensor]:
+    ) -> List[torch.Tensor]:
         x = torch.detach(x)
         if g is not None:
             g = torch.detach(g)
@@ -414,7 +414,7 @@ class TextEncoder(nn.Module):
         bert: torch.Tensor,
         style_vec: torch.Tensor,
         g: Optional[torch.Tensor] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         bert_emb = self.bert_proj(bert).transpose(1, 2)
         style_emb = self.style_proj(style_vec.unsqueeze(1))
         x = (
@@ -524,7 +524,7 @@ class PosteriorEncoder(nn.Module):
         x: torch.Tensor,
         x_lengths: torch.Tensor,
         g: Optional[torch.Tensor] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x_mask = torch.unsqueeze(commons.sequence_mask(x_lengths, x.size(2)), 1).to(
             x.dtype
         )
@@ -541,11 +541,11 @@ class Generator(torch.nn.Module):
         self,
         initial_channel: int,
         resblock_str: str,
-        resblock_kernel_sizes: list[int],
-        resblock_dilation_sizes: list[list[int]],
-        upsample_rates: list[int],
+        resblock_kernel_sizes: List[int],
+        resblock_dilation_sizes: List[List[int]],
+        upsample_rates: List[int],
         upsample_initial_channel: int,
-        upsample_kernel_sizes: list[int],
+        upsample_kernel_sizes: List[int],
         gin_channels: int = 0,
     ) -> None:
         super(Generator, self).__init__()
@@ -681,7 +681,7 @@ class DiscriminatorP(torch.nn.Module):
         )
         self.conv_post = norm_f(Conv2d(1024, 1, (3, 1), 1, padding=(1, 0)))
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, list[torch.Tensor]]:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, List[torch.Tensor]]:
         fmap = []
 
         # 1d to 2d
@@ -719,7 +719,7 @@ class DiscriminatorS(torch.nn.Module):
         )
         self.conv_post = norm_f(Conv1d(1024, 1, 3, 1, padding=1))
 
-    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, list[torch.Tensor]]:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, List[torch.Tensor]]:
         fmap = []
 
         for layer in self.convs:
@@ -748,8 +748,11 @@ class MultiPeriodDiscriminator(torch.nn.Module):
         self,
         y: torch.Tensor,
         y_hat: torch.Tensor,
-    ) -> tuple[
-        list[torch.Tensor], list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]
+    ) -> Tuple[
+        List[torch.Tensor],
+        List[torch.Tensor],
+        List[torch.Tensor],
+        List[torch.Tensor],
     ]:
         y_d_rs = []
         y_d_gs = []
@@ -900,11 +903,11 @@ class SynthesizerTrn(nn.Module):
         kernel_size: int,
         p_dropout: float,
         resblock: str,
-        resblock_kernel_sizes: list[int],
-        resblock_dilation_sizes: list[list[int]],
-        upsample_rates: list[int],
+        resblock_kernel_sizes: List[int],
+        resblock_dilation_sizes: List[List[int]],
+        upsample_rates: List[int],
         upsample_initial_channel: int,
-        upsample_kernel_sizes: list[int],
+        upsample_kernel_sizes: List[int],
         n_speakers: int = 256,
         gin_channels: int = 256,
         use_sdp: bool = True,
@@ -1019,7 +1022,7 @@ class SynthesizerTrn(nn.Module):
         language: torch.Tensor,
         bert: torch.Tensor,
         style_vec: torch.Tensor,
-    ) -> tuple[
+    ) -> Tuple[
         torch.Tensor,
         torch.Tensor,
         torch.Tensor,
@@ -1027,8 +1030,8 @@ class SynthesizerTrn(nn.Module):
         torch.Tensor,
         torch.Tensor,
         torch.Tensor,
-        tuple[torch.Tensor, ...],
-        tuple[torch.Tensor, ...],
+        Tuple[torch.Tensor, ...],
+        Tuple[torch.Tensor, ...],
     ]:
         if self.n_speakers > 0:
             g = self.emb_g(sid).unsqueeze(-1)  # [b, h, 1]
@@ -1121,7 +1124,7 @@ class SynthesizerTrn(nn.Module):
         max_len: Optional[int] = None,
         sdp_ratio: float = 0.0,
         y: Optional[torch.Tensor] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, tuple[torch.Tensor, ...]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Tuple[torch.Tensor, ...]]:
         # x, m_p, logs_p, x_mask = self.enc_p(x, x_lengths, tone, language, bert)
         # g = self.gst(y)
         if self.n_speakers > 0:

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Tuple
 
 import torch
 from safetensors import safe_open
@@ -12,7 +12,7 @@ def load_safetensors(
     checkpoint_path: Union[str, Path],
     model: torch.nn.Module,
     for_infer: bool = False,
-) -> tuple[torch.nn.Module, Optional[int]]:
+) -> Tuple[torch.nn.Module, Optional[int]]:
     """
     指定されたパスから safetensors モデルを読み込み、モデルとイテレーションを返す。
 

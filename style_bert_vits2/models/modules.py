@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Tuple
 
 import torch
 from torch import nn
@@ -235,7 +235,7 @@ class ResBlock1(torch.nn.Module):
         self,
         channels: int,
         kernel_size: int = 3,
-        dilation: tuple[int, int, int] = (1, 3, 5),
+        dilation: Tuple[int, int, int] = (1, 3, 5),
     ) -> None:
         super(ResBlock1, self).__init__()
         self.convs1 = nn.ModuleList(
@@ -336,7 +336,7 @@ class ResBlock1(torch.nn.Module):
 
 class ResBlock2(torch.nn.Module):
     def __init__(
-        self, channels: int, kernel_size: int = 3, dilation: tuple[int, int] = (1, 3)
+        self, channels: int, kernel_size: int = 3, dilation: Tuple[int, int] = (1, 3)
     ) -> None:
         super(ResBlock2, self).__init__()
         self.convs = nn.ModuleList(
@@ -390,7 +390,7 @@ class Log(nn.Module):
         x_mask: torch.Tensor,
         reverse: bool = False,
         **kwargs: Any,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         if not reverse:
             y = torch.log(torch.clamp_min(x, 1e-5)) * x_mask
             logdet = torch.sum(-y, [1, 2])
@@ -407,7 +407,7 @@ class Flip(nn.Module):
         *args: Any,
         reverse: bool = False,
         **kwargs: Any,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         x = torch.flip(x, [1])
         if not reverse:
             logdet = torch.zeros(x.size(0)).to(dtype=x.dtype, device=x.device)
@@ -429,7 +429,7 @@ class ElementwiseAffine(nn.Module):
         x_mask: torch.Tensor,
         reverse: bool = False,
         **kwargs: Any,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         if not reverse:
             y = self.m + torch.exp(self.logs) * x
             y = y * x_mask
@@ -482,7 +482,7 @@ class ResidualCouplingLayer(nn.Module):
         x_mask: torch.Tensor,
         g: Optional[torch.Tensor] = None,
         reverse: bool = False,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         x0, x1 = torch.split(x, [self.half_channels] * 2, 1)
         h = self.pre(x0) * x_mask
         h = self.enc(h, x_mask, g=g)
@@ -538,7 +538,7 @@ class ConvFlow(nn.Module):
         x_mask: torch.Tensor,
         g: Optional[torch.Tensor] = None,
         reverse: bool = False,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         x0, x1 = torch.split(x, [self.half_channels] * 2, 1)
         h = self.pre(x0)
         h = self.convs(h, x_mask, g=g)
@@ -620,7 +620,7 @@ class TransformerCouplingLayer(nn.Module):
         x_mask: torch.Tensor,
         g: Optional[torch.Tensor] = None,
         reverse: bool = False,
-    ) -> Union[tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], torch.Tensor]:
         x0, x1 = torch.split(x, [self.half_channels] * 2, 1)
         h = self.pre(x0) * x_mask
         h = self.enc(h, x_mask, g=g)

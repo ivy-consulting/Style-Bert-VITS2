@@ -228,7 +228,7 @@ class Translate_config:
 
 
 class Config:
-    def __init__(self, config_path: str, path_config: dict[str, str]):
+    def __init__(self, config_path: str, path_config: Dict[str, str]):
         if not os.path.isfile(config_path) and os.path.isfile("default_config.yml"):
             shutil.copy(src="default_config.yml", dst=config_path)
             logger.info(
@@ -278,7 +278,7 @@ class Config:
 
 
 with open(os.path.join("configs", "paths.yml"), "r", encoding="utf-8") as f:
-    path_config: dict[str, str] = yaml.safe_load(f.read())
+    path_config: Dict[str, str] = yaml.safe_load(f.read())
     # Should contain the following keys:
     # - dataset_root: the root directory of the dataset, default to "Data"
     # - assets_root: the root directory of the assets, default to "model_assets"

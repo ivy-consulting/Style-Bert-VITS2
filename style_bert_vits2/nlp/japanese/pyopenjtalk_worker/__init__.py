@@ -3,7 +3,7 @@ Run the pyopenjtalk worker in a separate process
 to avoid user dictionary access error
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, List, Dict
 
 from style_bert_vits2.logging import logger
 from style_bert_vits2.nlp.japanese.pyopenjtalk_worker.worker_client import WorkerClient
@@ -17,7 +17,7 @@ WORKER_CLIENT: Optional[WorkerClient] = None
 # g2p(): not used
 
 
-def run_frontend(text: str) -> list[dict[str, Any]]:
+def run_frontend(text: str) -> List[Dict[str, Any]]:
     if WORKER_CLIENT is not None:
         ret = WORKER_CLIENT.dispatch_pyopenjtalk("run_frontend", text)
         assert isinstance(ret, list)
@@ -29,7 +29,7 @@ def run_frontend(text: str) -> list[dict[str, Any]]:
         return pyopenjtalk.run_frontend(text)
 
 
-def make_label(njd_features: Any) -> list[str]:
+def make_label(njd_features: Any) -> List[str]:
     if WORKER_CLIENT is not None:
         ret = WORKER_CLIENT.dispatch_pyopenjtalk("make_label", njd_features)
         assert isinstance(ret, list)

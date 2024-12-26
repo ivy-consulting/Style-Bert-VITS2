@@ -2,7 +2,7 @@ import glob
 import os
 import re
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, Tuple
 
 import torch
 
@@ -15,7 +15,7 @@ def load_checkpoint(
     optimizer: Optional[torch.optim.Optimizer] = None,
     skip_optimizer: bool = False,
     for_infer: bool = False,
-) -> tuple[torch.nn.Module, Optional[torch.optim.Optimizer], float, int]:
+) -> Tuple[torch.nn.Module, Optional[torch.optim.Optimizer], float, int]:
     """
     指定されたパスからチェックポイントを読み込み、モデルとオプティマイザーを更新する。
 

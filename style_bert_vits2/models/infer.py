@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union, cast, List
 
 import torch
 from numpy.typing import NDArray
@@ -102,7 +102,7 @@ def get_text(
     device: str,
     assist_text: Optional[str] = None,
     assist_text_weight: float = 0.7,
-    given_tone: Optional[list[int]] = None,
+    given_tone: Optional[List[int]] = None,
 ):
     use_jp_extra = hps.version.endswith("JP-Extra")
     # 推論時のみ呼び出されるので、raise_yomi_error は False に設定
@@ -179,7 +179,7 @@ def infer(
     skip_end: bool = False,
     assist_text: Optional[str] = None,
     assist_text_weight: float = 0.7,
-    given_tone: Optional[list[int]] = None,
+    given_tone: Optional[List[int]] = None,
 ):
     is_jp_extra = hps.version.endswith("JP-Extra")
     bert, ja_bert, en_bert, phones, tones, lang_ids = get_text(

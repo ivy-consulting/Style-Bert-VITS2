@@ -5,7 +5,7 @@ Style-Bert-VITS2 モデルのハイパーパラメータを表す Pydantic モ�
 """
 
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Dict, List, Any, Tuple
 
 from pydantic import BaseModel, ConfigDict
 
@@ -16,7 +16,7 @@ class HyperParametersTrain(BaseModel):
     seed: int = 42
     epochs: int = 1000
     learning_rate: float = 0.0001
-    betas: tuple[float, float] = (0.8, 0.99)
+    betas: Tuple[float, float] = (0.8, 0.99)
     eps: float = 1e-9
     batch_size: int = 2
     bf16_run: bool = False
@@ -52,11 +52,11 @@ class HyperParametersData(BaseModel):
     add_blank: bool = True
     n_speakers: int = 1
     cleaned_text: bool = True
-    spk2id: dict[str, int] = {
+    spk2id: Dict[str, int] = {
         "Dummy": 0,
     }
     num_styles: int = 1
-    style2id: dict[str, int] = {
+    style2id: Dict[str, int] = {
         "Neutral": 0,
     }
 
@@ -83,15 +83,15 @@ class HyperParametersModel(BaseModel):
     kernel_size: int = 3
     p_dropout: float = 0.1
     resblock: str = "1"
-    resblock_kernel_sizes: list[int] = [3, 7, 11]
-    resblock_dilation_sizes: list[list[int]] = [
+    resblock_kernel_sizes: List[int] = [3, 7, 11]
+    resblock_dilation_sizes: List[List[int]] = [
         [1, 3, 5],
         [1, 3, 5],
         [1, 3, 5],
     ]
-    upsample_rates: list[int] = [8, 8, 2, 2, 2]
+    upsample_rates: List[int] = [8, 8, 2, 2, 2]
     upsample_initial_channel: int = 512
-    upsample_kernel_sizes: list[int] = [16, 16, 8, 2, 2]
+    upsample_kernel_sizes: List[int] = [16, 16, 8, 2, 2]
     n_layers_q: int = 3
     use_spectral_norm: bool = False
     gin_channels: int = 512

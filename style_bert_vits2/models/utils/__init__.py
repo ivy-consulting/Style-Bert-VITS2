@@ -4,7 +4,7 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union, Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -27,10 +27,10 @@ __is_matplotlib_imported = False
 def summarize(
     writer: "SummaryWriter",
     global_step: int,
-    scalars: dict[str, float] = {},
-    histograms: dict[str, Any] = {},
-    images: dict[str, Any] = {},
-    audios: dict[str, Any] = {},
+    scalars: Dict[str, float] = {},
+    histograms: Dict[str, Any] = {},
+    images: Dict[str, Any] = {},
+    audios: Dict[str, Any] = {},
     audio_sampling_rate: int = 22050,
 ) -> None:
     """
@@ -151,7 +151,7 @@ def plot_alignment_to_numpy(
     return data
 
 
-def load_wav_to_torch(full_path: Union[str, Path]) -> tuple[torch.FloatTensor, int]:
+def load_wav_to_torch(full_path: Union[str, Path]) -> Tuple[torch.FloatTensor, int]:
     """
     指定された音声ファイルを読み込み、PyTorch のテンソルに変換して返す
 
@@ -168,7 +168,7 @@ def load_wav_to_torch(full_path: Union[str, Path]) -> tuple[torch.FloatTensor, i
 
 def load_filepaths_and_text(
     filename: Union[str, Path], split: str = "|"
-) -> list[list[str]]:
+) -> List[List[str]]:
     """
     指定されたファイルからファイルパスとテキストを読み込む
 

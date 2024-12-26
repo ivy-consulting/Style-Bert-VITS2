@@ -2,7 +2,7 @@ import warnings
 from pathlib import Path
 import json
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Union, Tuple
 import torch
 import gradio as gr
 
@@ -157,10 +157,10 @@ class TTSModel:
         use_assist_text: bool = False,
         style: str = DEFAULT_STYLE,
         style_weight: float = DEFAULT_STYLE_WEIGHT,
-        given_tone: Optional[list[int]] = None,
+        given_tone: Optional[List[int]] = None,
         pitch_scale: float = 1.0,
         intonation_scale: float = 1.0,
-    ) -> tuple[int, NDArray[Any]]:
+    ) -> Tuple[int, NDArray[Any]]:
         """
         テキストから音声を合成する。
 
@@ -268,9 +268,9 @@ class TTSModel:
 
 class TTSModelInfo(BaseModel):
     name: str
-    files: list[str]
-    styles: list[str]
-    speakers: list[str]
+    files: List[str]
+    styles: List[str]
+    speakers: List[str]
 
 
 class TTSModelHolder:
@@ -355,7 +355,7 @@ class TTSModelHolder:
 
         return self.current_model
 
-    def get_model_for_gradio(self, model_name: str) -> tuple[gr.Dropdown, gr.Button, gr.Dropdown]:
+    def get_model_for_gradio(self, model_name: str) -> Tuple[gr.Dropdown, gr.Button, gr.Dropdown]:
         if model_name not in self.model_files_dict:
             raise ValueError(f"Model `{model_name}` is not found")
 
@@ -394,7 +394,7 @@ class TTSModelHolder:
         model_files = [self.model_files_dict[model_name]["model_path"]]
         return gr.Dropdown(choices=model_files, value=model_files[0])  # type: ignore
 
-    def update_model_names_for_gradio(self) -> tuple[gr.Dropdown, gr.Dropdown, gr.Button]:
+    def update_model_names_for_gradio(self) -> Tuple[gr.Dropdown, gr.Dropdown, gr.Button]:
         self.refresh()
         initial_model_name = self.model_names[0]
         initial_model_files = [self.model_files_dict[initial_model_name]["model_path"]]

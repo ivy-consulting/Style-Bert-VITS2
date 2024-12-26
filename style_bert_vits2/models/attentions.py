@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional
+from typing import Any, Optional, List, Tuple
 
 import torch
 from torch import nn
@@ -25,7 +25,7 @@ class LayerNorm(nn.Module):
 
 @torch.jit.script  # type: ignore
 def fused_add_tanh_sigmoid_multiply(
-    input_a: torch.Tensor, input_b: torch.Tensor, n_channels: list[int]
+    input_a: torch.Tensor, input_b: torch.Tensor, n_channels: List[int]
 ) -> torch.Tensor:
     n_channels_int = n_channels[0]
     in_act = input_a + input_b
@@ -290,7 +290,7 @@ class MultiHeadAttention(nn.Module):
         key: torch.Tensor,
         value: torch.Tensor,
         mask: Optional[torch.Tensor] = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         # reshape [b, d, t] -> [b, n_h, t, d_k]
         b, d, t_s, t_t = (*key.size(), query.size(2))
         query = query.view(b, self.n_heads, self.k_channels, t_t).transpose(2, 3)

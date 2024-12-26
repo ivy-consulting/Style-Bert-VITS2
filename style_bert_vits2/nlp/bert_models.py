@@ -9,7 +9,7 @@ Style-Bert-VITS2 の学習・推論に必要な各言語ごとの BERT モデル
 """
 
 import gc
-from typing import Optional, Union, cast
+from typing import Optional, Union, cast, Dict
 
 import torch
 from transformers import (
@@ -27,10 +27,10 @@ from style_bert_vits2.logging import logger
 
 
 # 各言語ごとのロード済みの BERT モデルを格納する辞書
-__loaded_models: dict[Languages, Union[PreTrainedModel, DebertaV2Model]] = {}
+__loaded_models: Dict[Languages, Union[PreTrainedModel, DebertaV2Model]] = {}
 
 # 各言語ごとのロード済みの BERT トークナイザーを格納する辞書
-__loaded_tokenizers: dict[
+__loaded_tokenizers: Dict[
     Languages, Union[PreTrainedTokenizer, PreTrainedTokenizerFast, DebertaV2Tokenizer]
 ] = {}
 

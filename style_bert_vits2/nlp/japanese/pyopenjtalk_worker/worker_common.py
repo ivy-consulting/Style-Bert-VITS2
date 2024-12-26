@@ -1,7 +1,7 @@
 import json
 import socket
 from enum import IntEnum, auto
-from typing import Any, Final
+from typing import Any, Final, Dict
 
 
 WORKER_PORT: Final[int] = 7861
@@ -21,7 +21,7 @@ class ConnectionClosedException(Exception):
 # socket communication
 
 
-def send_data(sock: socket.socket, data: dict[str, Any]):
+def send_data(sock: socket.socket, data: Dict[str, Any]):
     json_data = json.dumps(data).encode()
     header = len(json_data).to_bytes(HEADER_SIZE, byteorder="big")
     sock.sendall(header + json_data)
@@ -38,7 +38,7 @@ def __receive_until(sock: socket.socket, size: int):
     return data
 
 
-def receive_data(sock: socket.socket) -> dict[str, Any]:
+def receive_data(sock: socket.socket) -> Dict[str, Any]:
     header = __receive_until(sock, HEADER_SIZE)
     data_length = int.from_bytes(header, byteorder="big")
     body = __receive_until(sock, data_length)

@@ -3,6 +3,8 @@
 # TODO: server_editor.pyと統合する?
 # """
 
+import nltk
+nltk.download('averaged_perceptron_tagger_eng')
 # import argparse
 # import os
 # import sys
