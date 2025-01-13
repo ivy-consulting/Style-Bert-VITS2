@@ -417,6 +417,67 @@ def load_models(model_holder: TTSModelHolder):
 
 
 
+from fastapi import FastAPI, Request, HTTPException
+from functools import wraps
+import hashlib
+
+app = FastAPI()
+
+# Define your API keys and secret
+API_KEYS = {
+    'nodejs-service': 'nodejs-api-key',
+    'python-service1': 'python1-api-key',
+}
+
+
+import hashlib
+
+API_KEYS = {
+    'ruby-service': 'sps-dasjidnkwoi0eqjdndaisjirwanjidansidnqwihrdasdas',
+    'python-service1': 'python1-api-key',
+}
+
+SERVICE_SECRET = 'dhjasd44e3eqwe32eqw532eqweandi3j4'
+
+def verify_signature(service_name: str, signature: str) -> bool:
+    """
+    Verify the incoming request signature.
+    """
+    api_key = API_KEYS.get(service_name)
+    if not api_key:
+        return False
+
+    # Recreate the expected signature
+    data = f"{service_name}{api_key}{SERVICE_SECRET}"
+    expected_signature = hashlib.sha256(data.encode()).hexdigest()
+
+    return signature == expected_signature
+
+
+def authenticate_service(func):
+    """
+    Decorator to authenticate service-to-service requests.
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs) -> Response:
+        request: Request = kwargs.get("request")
+        if not request:
+            raise HTTPException(status_code=403, detail="Missing request")
+            
+        x_service_name: Optional[str] = request.headers.get("X-Service-Name") 
+        x_signature: Optional[str] = request.headers.get("X-Signature")
+
+        if not x_service_name or not x_signature:
+            raise HTTPException(status_code=403, detail="Missing authentication headers")
+
+        if not verify_signature(x_service_name, x_signature):
+            raise HTTPException(status_code=403, detail="Invalid authentication signature")
+
+        return await func(*args, **kwargs)
+
+    return wrapper
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cpu", action="store_true", help="Use CPU instead of GPU")
@@ -464,7 +525,9 @@ if __name__ == "__main__":
     # app.logger = logger
     # ↑効いていなさそう。loggerをどうやって上書きするかはよく分からなかった。
 
+    
     @app.api_route("/voice", methods=["POST"], response_class=AudioResponse)
+    @authenticate_service
     async def voice(
         request: Request,
         text: str = Query(..., min_length=1, description="セリフ"),
@@ -575,6 +638,7 @@ if __name__ == "__main__":
             return Response(content=wavContent.getvalue(), media_type="audio/wav")
 
     @app.api_route("/audioByteArray", methods=["GET", "POST"], response_class=ByteAudioResponse)
+    @authenticate_service
     async def voice(
         request: Request,
         text: str = Query(..., min_length=1, description="セリフ"),
