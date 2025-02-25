@@ -380,6 +380,7 @@ bert_models.load_model(Languages.ZH)
 bert_models.load_tokenizer(Languages.ZH)
 
 
+
 def raise_validation_error(msg: str, param: str):
     logger.warning(f"Validation error: {msg}")
     raise HTTPException(
@@ -396,6 +397,41 @@ def createBinary(audio_path):
   binary_data = data.tobytes()
   return binary_data, samplerate
 
+# Function to extract words from the cmudict file
+
+def extract_words_from_cmudict(file_path):
+    words = set()
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                # Skip comment lines starting with ##
+                if line.startswith('##'):
+                    continue
+                # Split the line by whitespace and take the first part (the word)
+                parts = line.split()
+                if parts:  # Ensure the line isn't empty
+                    word = parts[0]
+                    # Add the word to the set (case-insensitive)
+                    words.add(word.lower())
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+    except Exception as e:
+        print(f"Error reading file: {e}")
+    return words
+
+# Define the clean function
+def clean(sentence, dictionary_words):
+    # Split the sentence into words
+    words = sentence.split()
+    # Keep only words that are in the dictionary (case-insensitive)
+    filtered_words = [word for word in words if word.lower() in dictionary_words]
+    # Join the filtered words back into a sentence
+    return ' '.join(filtered_words)
+
+file_path = "style_bert_vits2/nlp/english/cmudict.py"
+
+# Extract words from the file
+dictionary_words = extract_words_from_cmudict(file_path)
 
 loaded_models: list[TTSModel] = []
 
@@ -592,6 +628,11 @@ if __name__ == "__main__":
             model_holder.model_names
         ):  # /models/refresh があるためQuery(le)で表現不可
             raise_validation_error(f"model_id={model_id} not found", "model_id")
+
+
+        text = clean(text, dictionary_words)
+
+        #text = preproccesed text
 
         model = loaded_models[model_id]
 
