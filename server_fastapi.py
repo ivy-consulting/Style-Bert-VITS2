@@ -652,31 +652,41 @@ if __name__ == "__main__":
         assert style is not None
         if encoding is not None:
             text = unquote(text, encoding=encoding)
-        sr, audio = model.infer(
-            text=text,
-            language=language,
-            speaker_id=speaker_id,
-            reference_audio_path=reference_audio_path,
-            sdp_ratio=sdp_ratio,
-            noise=noise,
-            noise_w=noisew,
-            length=length,
-            line_split=auto_split,
-            split_interval=split_interval,
-            assist_text=assist_text,
-            assist_text_weight=assist_text_weight,
-            use_assist_text=bool(assist_text),
-            style=style,
-            style_weight=style_weight,
-            pitch_scale=pitch_scale,
-            intonation_scale=intonation_scale
-        )
+
+        try:
+            sr, audio = model.infer(
+                text=text,
+                language=language,
+                speaker_id=speaker_id,
+                reference_audio_path=reference_audio_path,
+                sdp_ratio=sdp_ratio,
+                noise=noise,
+                noise_w=noisew,
+                length=length,
+                line_split=auto_split,
+                split_interval=split_interval,
+                assist_text=assist_text,
+                assist_text_weight=assist_text_weight,
+                use_assist_text=bool(assist_text),
+                style=style,
+                style_weight=style_weight,
+                pitch_scale=pitch_scale,
+                intonation_scale=intonation_scale
+            )
+        except torch.cuda.OutOfMemoryError as e:
+            logger.error(f"CUDA Out of Memory: {e}")
+            torch.cuda.empty_cache()  # Clear cache on error
+            raise HTTPException(status_code=500, detail="GPU memory exhausted, please try again.")
+        
+        # Clear GPU memory after successful inference
+        torch.cuda.empty_cache()
         logger.success("Audio data generated and sent successfully")
         with BytesIO() as wavContent:
             wavfile.write(wavContent, sr, audio)
             end_time = time.time()
             logger.info(f"It took {end_time - start_time} seconds to generate the audio!")
             return Response(content=wavContent.getvalue(), media_type="audio/wav")
+        
 
     @app.api_route("/audioByteArray", methods=["GET", "POST"], response_class=ByteAudioResponse)
     @authenticate_service
