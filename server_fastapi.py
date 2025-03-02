@@ -428,7 +428,7 @@ def clean(sentence, dictionary_words):
     # Join the filtered words back into a sentence
     return ' '.join(filtered_words)
 
-file_path = "style_bert_vits2/nlp/english/cmudict.py"
+file_path = "style_bert_vits2/nlp/english/cmudict.rep"
 
 # Extract words from the file
 dictionary_words = extract_words_from_cmudict(file_path)
