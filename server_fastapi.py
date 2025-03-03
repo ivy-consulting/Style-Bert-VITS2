@@ -420,11 +420,13 @@ def extract_words_from_cmudict(file_path):
     return words
 
 # Define the clean function
+import string
+
 def clean(sentence, dictionary_words):
     # Split the sentence into words
     words = sentence.split()
-    # Keep only words that are in the dictionary (case-insensitive)
-    filtered_words = [word for word in words if word.lower() in dictionary_words]
+    # Remove punctuation from each word and keep only words that are in the dictionary (case-insensitive)
+    filtered_words = [word for word in words if word.strip(string.punctuation).lower() in dictionary_words]
     # Join the filtered words back into a sentence
     return ' '.join(filtered_words)
 
@@ -629,8 +631,9 @@ if __name__ == "__main__":
         ):  # /models/refresh があるためQuery(le)で表現不可
             raise_validation_error(f"model_id={model_id} not found", "model_id")
 
-
-        text = clean(text, dictionary_words)
+        
+        if language == "EN":
+            text = clean(text, dictionary_words)
 
         #text = preproccesed text
 
