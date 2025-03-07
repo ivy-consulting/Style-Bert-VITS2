@@ -632,8 +632,10 @@ if __name__ == "__main__":
             raise_validation_error(f"model_id={model_id} not found", "model_id")
 
         
+        clean_time =  time.time()
         if language == "EN":
             text = clean(text, dictionary_words)
+        print("The time it take to clean the text is ", time.time() - clean_time)
 
         #text = preproccesed text
 
@@ -653,9 +655,13 @@ if __name__ == "__main__":
         if style not in model.style2id.keys():
             raise_validation_error(f"style={style} not found", "style")
         assert style is not None
+
+        encoding_time = time.time()
         if encoding is not None:
             text = unquote(text, encoding=encoding)
+        print("The time it take to encode the text is ", time.time() - encoding_time)
 
+        infer_time = time.time()
         try:
             sr, audio = model.infer(
                 text=text,
@@ -680,12 +686,14 @@ if __name__ == "__main__":
             logger.error(f"CUDA Out of Memory: {e}")
             torch.cuda.empty_cache()  # Clear cache on error
             raise HTTPException(status_code=500, detail="GPU memory exhausted, please try again.")
-        
+        print("The time it take to infer the text is ", time.time() - infer_time)
         # Clear GPU memory after successful inference
         torch.cuda.empty_cache()
         logger.success("Audio data generated and sent successfully")
+        change_to_wav = time.time()
         with BytesIO() as wavContent:
             wavfile.write(wavContent, sr, audio)
+            print("The time it take to change the audio to wav is ", time.time() - change_to_wav)
             end_time = time.time()
             logger.info(f"It took {end_time - start_time} seconds to generate the audio!")
             return Response(content=wavContent.getvalue(), media_type="audio/wav")
